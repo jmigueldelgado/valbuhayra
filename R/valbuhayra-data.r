@@ -40,3 +40,24 @@
 #' data(CAV)
 #' \donttest{head(CAV)}
 "CAV"
+
+
+#' Monitored reservoirs in Ceará
+#'
+#' The data was obtained from the \href{http://api.funceme.br/help}{FUNCEME API}.
+#'
+#' @docType data
+#'
+#' @usage data(reservoirs)
+#'
+#' @format An object of class \code{"sf"}.
+#'
+#' @keywords datasets
+#'
+#'
+#' @source \href{http://api.funceme.br/help}{FUNCEME API}
+#'
+#' @examples
+#' data(reservoirs)
+#' \donttest{plot(reservoirs["capacity"])}
+"reservoirs"
