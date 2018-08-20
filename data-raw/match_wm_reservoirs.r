@@ -1,11 +1,42 @@
 library(valbuhayra)
 library(sf)
+library(dplyr)
 
-# res_snap=st_snap(reservoirs,wm,tolerance=0.01)
-# head(res_snap)
 
-# use st_join https://r-spatial.github.io/sf/reference/st_join.html
+wm_fun = st_read('/home/delgado/proj/buhayra/buhayra/auxdata/funceme.geojson')
+wm_fun = st_set_crs(wm_fun,32724)
 
-reservoirs=st_set_crs(reservoirs,st_crs(wm))
+ressnap=st_snap(reservoirs,wm_fun,tolerance=1000)
 
-res_on_wm=st_join(reservoirs,wm,join=st_is_within_distance,dist=0.01)
+
+head(ressnap)
+
+head(wm_fun)
+
+res_near_wm=st_join(ressnap,wm_fun,join=st_is_within_distance,dist=5)
+
+# nrow(res_near_wm)
+# nrow(reservoirs)
+
+res_near_wm=res_near_wm %>%
+  group_by(cod) %>%
+  filter(n()==1)
+
+head(res_near_wm)
+
+colnames(wm_fun)
+colnames(res_near_wm)
+
+id_lookup = select(res_near_wm,cod,id)
+st_geometry(id_lookup)=NULL
+
+id_lookup = id_lookup %>% na.omit(cod)
+
+
+
+left_join()
+
+  wm_validation = res_near_wm %>%
+  filter(id %in% id)
+
+colnames(wm_validation)
