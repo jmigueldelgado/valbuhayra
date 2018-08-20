@@ -14,6 +14,10 @@ library(tidyr)
 reservoirs=df %>% drop_na(longitude,latitude) %>% st_as_sf(coords=c("longitude","latitude"))
 
 setwd('/home/delgado/proj/valbuhayra')
+
+reservoirs=st_set_crs(reservoirs,4326)
+reservoirs=st_transform(reservoirs,32724)
+
 save(reservoirs,file='data/reservoirs.RData')
 
 library(devtools)
