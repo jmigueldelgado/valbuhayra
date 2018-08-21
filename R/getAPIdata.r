@@ -3,6 +3,7 @@
 #' @export
 getVols <- function(id,date_lower,N)
   {
+
     if(missing(date_lower)) {
       date_lower=strftime(Sys.time()-3*60*60*24,format="%Y-%m-%d")
     }
@@ -11,6 +12,10 @@ getVols <- function(id,date_lower,N)
     }
     if(missing(id)) {
       id=9
+    }
+
+    if(grep('POSIX',class(date_lower)[1])==1) {
+      date_lower = strftime(date_lower)
     }
 
     request=paste0('http://api.funceme.br/rest/acude/volume?reservatorio.cod=',
