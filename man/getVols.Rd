@@ -4,8 +4,7 @@
 \alias{getVols}
 \title{get all the IDs of monitored reservoirs from FUNCEME API}
 \usage{
-getVols(id = 9, date_lower = strftime(Sys.time() - 7 * 60 * 60 * 24,
-  format = "\%Y-\%m-\%d"), N = 1)
+getVols(id, date_lower, N)
 }
 \description{
 get all the IDs of monitored reservoirs from FUNCEME API
