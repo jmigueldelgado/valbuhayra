@@ -5,6 +5,11 @@ library(jsonlite)
 
 cogerh=1
 
+
+filter(reservoirs,cod==cogerh)
+
+head(wm)
+
 library(ggplot2)
 cogerh
 

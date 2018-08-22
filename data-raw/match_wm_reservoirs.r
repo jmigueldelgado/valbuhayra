@@ -1,7 +1,7 @@
 library(valbuhayra)
 library(sf)
 library(dplyr)
-
+library(magrittr)
 wm_fun = st_read('/home/delgado/proj/buhayra/buhayra/auxdata/funceme.geojson')
 wm_fun = st_set_crs(wm_fun,32724)
 
@@ -31,7 +31,14 @@ st_geometry(id_lookup)=NULL
 id_lookup = id_lookup %>% na.omit(cod)
 reservoirs=left_join(reservoirs,id_lookup)
 
+
+## rename id
+head(reservoirs)
+reservoirs %<>% rename(id_funceme=id)
+
 save(reservoirs,file='data/reservoirs.RData')
+
+
 library(devtools)
 document()
 
