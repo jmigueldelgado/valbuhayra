@@ -48,6 +48,7 @@ st_geometry(id_lookup)=NULL
 id_lookup = id_lookup %>% na.omit(cod)
 reservoirs=left_join(reservoirs,id_lookup)
 
+filter(wm,id_funceme==12542)
 
 ## rename id
 head(reservoirs)

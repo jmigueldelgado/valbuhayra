@@ -21,20 +21,21 @@ vols=test1 %>%
   map(~getVols(.$cod,.$ingestion_time,1)) %>%
   bind_rows
 
-head(CAV)
-cav=filter(CAV,reservatorio==96)
+  vols
 
+# areas are given in km2!!!
+
+head(CAV)
+
+
+cav=filter(CAV,reservatorio==96)
+cav
 test
 
 test1
 vols
 vols$value
-cav
 spline(cav$volume,cav$area,xout=vols$value)
 approx(cav$volume,cav$area,xout=vols$value)
 test1
-
-filter(wm,id_funceme==17639) %>% plot
-
-st_write(reservoirs,'reservoirs.gpkg')
-getwd()
+filter(wm,id_funceme==12542) %>% plot

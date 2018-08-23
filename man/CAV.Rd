@@ -12,7 +12,7 @@
 data(CAV)
 }
 \description{
-The data was obtained from the \href{http://api.funceme.br/help}{FUNCEME API}.
+The data was obtained from the \href{http://api.funceme.br/help}{FUNCEME API}. Areas are given in $km^2$, volumes in $hm^3$ and heights in $m$.
 }
 \examples{
 data(CAV)
