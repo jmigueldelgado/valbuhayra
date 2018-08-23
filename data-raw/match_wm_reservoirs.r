@@ -5,21 +5,38 @@ library(magrittr)
 wm_fun = st_read('/home/delgado/proj/buhayra/buhayra/auxdata/funceme.geojson')
 wm_fun = st_set_crs(wm_fun,32724)
 
+head(reservoirs)
 
-ressnap=st_snap(reservoirs,wm_fun,tolerance=1000)
+id_funceme=array()
 
+for(i in seq(1,nrow(reservoirs))) {
+  dsts=st_distance(x=reservoirs[i,],y=wm_fun) %>% as.numeric
+  if(min(dsts)<1000) {
+    id_funceme[i]= dsts %>% which.min %>% wm_fun$id[.]
+  } else {
+    id_funceme[i]=NA
+  }
 
-head(ressnap)
+}
+length(id_funceme)
+nrow(reservoirs)
+reservoirs$id_funceme=id_funceme
+filter(reservoirs,cod==130)
+# ressnap=st_snap(reservoirs,wm_fun,tolerance=1000)
 
-head(wm_fun)
+# st_write(ressnap,'res_snap.gpkg')
 
-res_near_wm=st_join(ressnap,wm_fun,join=st_is_within_distance,dist=5)
+# head(ressnap)
+#
+# head(wm_fun)
+
+# res_near_wm=st_join(ressnap,wm_fun,join=st_is_within_distance,dist=5)
  # nrow(res_near_wm)
 # nrow(reservoirs)
 
-res_near_wm=res_near_wm %>%
-  group_by(cod) %>%
-  filter(n()==1)
+# res_near_wm=res_near_wm %>%
+#   group_by(cod) %>%
+#   filter(n()==1)
 
 nrow(res_near_wm)
 
@@ -37,7 +54,7 @@ head(reservoirs)
 reservoirs %<>% rename(id_funceme=id)
 
 save(reservoirs,file='data/reservoirs.RData')
-
+# st_write(reservoirs,'reservoirs.gpkg')
 
 library(devtools)
 document()
