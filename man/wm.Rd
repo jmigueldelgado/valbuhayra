@@ -12,7 +12,7 @@
 data(wm)
 }
 \description{
-Watermasks from August 2018 in Ceará, Northeast Brazil. The data was derived mainly from Sentinel data from ESA
+Watermasks from May, June, July and August 2018 in Ceará, Northeast Brazil. The data was derived mainly from Sentinel data from ESA
 with the package \href{https://github.com/jmigueldelgado/buhayra}{buhayra}. Most processing runs in the
 computation cluster of the University of Potsdam, Germany.
 }
