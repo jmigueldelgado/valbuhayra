@@ -2,13 +2,17 @@ library(valbuhayra)
 library(dplyr)
 library(sf)
 
-# wm=st_read('/home/delgado/hykli/load_to_postgis/latest.geojson')
-wm0=st_read('/home/delgado/webserver/load_to_postgis/latest.geojson')
-wm1=st_read('/home/delgado/webserver/load_to_postgis/latest-1-month.geojson')
-wm2=st_read('/home/delgado/webserver/load_to_postgis/latest-2-month.geojson')
-wm3=st_read('/home/delgado/webserver/load_to_postgis/latest-3-month.geojson')
+# wm0=st_read('/home/delgado/webserver/load_to_postgis/latest.geojson',stringsAsFactors=FALSE)
+# wm1=st_read('/home/delgado/webserver/load_to_postgis/latest-1-month.geojson',stringsAsFactors=FALSE)
+# wm2=st_read('/home/delgado/webserver/load_to_postgis/latest-2-month.geojson',stringsAsFactors=FALSE)
+# wm3=st_read('/home/delgado/webserver/load_to_postgis/latest-3-month.geojson',stringsAsFactors=FALSE)
 
+wm0=st_read('/home/delgado/hykli/load_to_postgis/latest.geojson',stringsAsFactors=FALSE)
+wm1=st_read('/home/delgado/hykli/load_to_postgis/latest-1-month.geojson',stringsAsFactors=FALSE)
+wm2=st_read('/home/delgado/hykli/load_to_postgis/latest-2-month.geojson',stringsAsFactors=FALSE)
+wm3=st_read('/home/delgado/hykli/load_to_postgis/latest-3-month.geojson',stringsAsFactors=FALSE)
 
+library(lubridate)
 library(purrr)
 library(magrittr)
 
@@ -18,6 +22,7 @@ mutate_and_transf = function(wm) {
     wm %<>% mutate(id_funceme=ifelse(is.na(id_funceme),id_cogerh,id_funceme)) %>% mutate_if(is.factor,as.character) %>% select(-id_cogerh)
   }
   wm %<>% st_transform(.,32724)
+  wm %<>% mutate(ingestion_time=force_tz(ingestion_time,'UTC'))
 }
 
 wm=list(wm0,wm1,wm2,wm3)

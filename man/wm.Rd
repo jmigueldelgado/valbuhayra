@@ -4,7 +4,7 @@
 \name{wm}
 \alias{wm}
 \title{Reservoir water extents in Ceará}
-\format{An object of class \code{"sf"}.}
+\format{An object of class \code{"sf"}. Column \code{ingestion_time} is in UTC. Column \code{area} is in $m^2$.}
 \source{
 \href{http://scihub.copernicus.eu/}{Sentinel API}
 }
