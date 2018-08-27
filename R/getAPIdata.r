@@ -12,8 +12,10 @@ requestVolumes <- function(id,requestDate,returnN) {
     id=9
   }
 
-  if(grep('POSIX',class(requestDate)[1])==1) {
-    requestDate = format(requestDate,tz="America/Fortaleza")
+  if(grepl('POSIX',class(requestDate)[1])) {
+    requestDateAPI = format(requestDate,tz="America/Fortaleza",format="%Y-%m-%d")
+  } else {
+    requestDateAPI = requestDate
   }
 
   request=paste0('http://api.funceme.br/rest/acude/volume?reservatorio.cod=',
@@ -21,25 +23,25 @@ requestVolumes <- function(id,requestDate,returnN) {
     '&limit=',
     returnN,
     '&dataColeta.GTE=',
-    requestDate,
+    requestDateAPI,
     '&orderBy=dataColeta,cres')
 
   vols=fromJSON(request)
 
   value=vols$list$valor
-  value
+
   if(is.null(value)) {
-    warning(paste0("No values for id ",id," recorded after input date ",requestDate))
+    warning(paste0("No values for id ",id," recorded after requested date ",requestDate))
     value=NA
   }
-  dt=strptime(vols$list$dataColeta,format="%Y-%m-%d %H:%M:%S",tz="BRT")
+  dt=strptime(vols$list$dataColeta,format="%Y-%m-%d %H:%M:%S",tz="America/Fortaleza")
   if(length(dt)==0) {
     dt=NA
   }
-  volOut=data.frame(returnedDate=dt,requestDate=strptime(requestDate,format="%Y-%m-%d %H:%M:%S",tz="BRT"),value=value,cod=id)
+  volOut=data.frame(returnedDate=dt,requestDate=requestDate,value=value,cod=id)
 
   # if observation date is more than two weeks apart from our requested date, only NA is returned
-  largediff=as.numeric(difftime(volOut$requestDate,volOut$returnedDate,units='days'))>14
+  largediff=as.numeric(difftime(volOut$returnedDate,volOut$requestDate,units='days'))>14
   volOut$value[largediff]=NA
   volOut$returnedDate[largediff]=NA
   return(volOut)
