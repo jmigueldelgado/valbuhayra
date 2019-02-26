@@ -8,6 +8,29 @@ library(jsonlite)
 library(purrr)
 library(lubridate)
 
+setwd('/home/delgado/proj/valbuhayra')
+
+request_and_lookup = function(areaBUH) {
+  volAPI= areaBUH[[1]] %>%
+    split(.$ingestion_time) %>%
+    map(~requestVolumes(.$cod[1],.$ingestion_time[1],1)) %>%
+    bind_rows
+
+  # areas in CAV are given in km2, volumes in hm3
+  cav=filter(CAV,reservatorio==areaBUH$cod[1])
+
+  # interp = spline(cav$volume,cav$area,xout=volAPI$value)
+  interp = approx(cav$volume,cav$area,xout=volAPI$value)
+
+  areaAPI = volAPI %>% mutate(value=interp$y)
+
+  api = areaAPI %>% rename(api=value) %>% mutate(requestDate=as.POSIXct(trunc(requestDate,'day'))) %>% select(requestDate,api)
+  buhayra = areaBUH %>% rename(buhayra=area,requestDate=ingestion_time) %>% mutate(requestDate=as.POSIXct(trunc(requestDate,'day'))) %>% select(id_funceme,cod,buhayra,requestDate)
+
+  val=left_join(api,buhayra)
+  return(val)
+}
+
 test = wm
 st_geometry(test) = NULL
 
@@ -50,6 +73,18 @@ validation %>% mutate(requestDate=as.factor(requestDate)) %>% #group_by(cod) %>%
       x=expression("measured by FUNCEME in"~km^2),
       y=expression("estimated by buhayra in"~km^2)) +
     theme_bw()
+
+
+## number of different dams
+validation %>% filter(api<5) %>% group_by(id_funceme) %>% summarise(first(id_funceme)) %>% nrow()
+
+## number of data points
+validation %>% filter(api<5) %>% nrow()
+
+## number of acquisition dates
+
+validation %>% filter(api<5) %>% group_by(requestDate) %>% summarise(first(requestDate)) %>% nrow()
+
 validation %>% mutate(requestDate=as.factor(requestDate)) %>% filter(api<5) %>% #group_by(cod) %>%
   # filter(!(abs(buhayra-median(buhayra)) > 2*sd(buhayra))) %>%
   # ungroup %>%
@@ -64,25 +99,4 @@ validation %>% mutate(requestDate=as.factor(requestDate)) %>% filter(api<5) %>% 
       y=expression("estimated by buhayra in"~km^2)) +
     theme_bw()
 
-
-
-request_and_lookup = function(areaBUH) {
-  volAPI= areaBUH[[1]] %>%
-    split(.$ingestion_time) %>%
-    map(~requestVolumes(.$cod[1],.$ingestion_time[1],1)) %>%
-    bind_rows
-
-  # areas in CAV are given in km2, volumes in hm3
-  cav=filter(CAV,reservatorio==areaBUH$cod[1])
-
-  # interp = spline(cav$volume,cav$area,xout=volAPI$value)
-  interp = approx(cav$volume,cav$area,xout=volAPI$value)
-
-  areaAPI = volAPI %>% mutate(value=interp$y)
-
-  api = areaAPI %>% rename(api=value) %>% mutate(requestDate=as.POSIXct(trunc(requestDate,'day'))) %>% select(requestDate,api)
-  buhayra = areaBUH %>% rename(buhayra=area,requestDate=ingestion_time) %>% mutate(requestDate=as.POSIXct(trunc(requestDate,'day'))) %>% select(id_funceme,cod,buhayra,requestDate)
-
-  val=left_join(api,buhayra)
-  return(val)
-}
+ggsave('data-raw/plt_val_small_dams.png',width=25,height=20,units='cm')
