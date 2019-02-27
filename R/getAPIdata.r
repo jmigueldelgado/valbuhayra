@@ -1,68 +1,69 @@
-#' Get decimal from base 60
-#' @export
-sexagesimal2decimal <- function(string) {
-  if(nchar(string)>4) {
-    degrees = substr(string,nchar(string)-5,nchar(string)-4) %>% as.numeric
-    minutes = substr(string,nchar(string)-3,nchar(string)-2) %>% as.numeric
-    seconds = substr(string,nchar(string)-1,nchar(string)-0) %>% as.numeric
-  } else {
-    degrees = substr(string,nchar(string)-3,nchar(string)-2) %>% as.numeric
-    minutes = substr(string,nchar(string)-1,nchar(string)-0) %>% as.numeric
-    seconds = 0
-  }
-  return(degrees+(minutes+seconds/60)/60)
-}
-
-#' Request list of rainfall gauges from funceme API
-#' @import jsonlite, lubridate, dplyr
-#' @export
-
-library(sf)
-getwd()
-
-library(jsonlite)
-library(lubridate)
-library(dplyr)
-
-requestDate = today()
-Ndays=5
-requestGauges <- function(returnN,requestDate) {
-
-    returnN <- 1000*Ndays
-    response_list <- list()
-    for(i in seq(0,Ndays-1)) {
-      request <- paste0('http://api.funceme.br/rest/pluvio/pluviometria-funceme-normalizada?data.date=',
-                        format(requestDate-i,tz="America/Fortaleza",format="%Y-%m-%d"),
-                        '&limit=',
-                        returnN)
-      resp <- fromJSON(request)
-      response_list[[i+1]] <- bind_cols(resp$list$data,select(resp$list,id,codigo,valor)) %>% mutate(date=ymd_hms(date))
-    }
-
-    df <- do.call(rbind, response_list)
-
-    postos_list = list()
-    postos = distinct(df,codigo)
+# #' Get decimal from base 60
+# #' @export
+# sexagesimal2decimal <- function(string) {
+#   if(nchar(string)>4) {
+#     degrees = substr(string,nchar(string)-5,nchar(string)-4) %>% as.numeric
+#     minutes = substr(string,nchar(string)-3,nchar(string)-2) %>% as.numeric
+#     seconds = substr(string,nchar(string)-1,nchar(string)-0) %>% as.numeric
+#   } else {
+#     degrees = substr(string,nchar(string)-3,nchar(string)-2) %>% as.numeric
+#     minutes = substr(string,nchar(string)-1,nchar(string)-0) %>% as.numeric
+#     seconds = 0
+#   }
+#   return(degrees+(minutes+seconds/60)/60)
+# }
 
 
+# library(sf)
+# getwd()
+#
+# library(jsonlite)
+# library(lubridate)
+# library(dplyr)
+#
+# requestDate = today()
+# Ndays=5
 
-    for(id in seq(1,nrow(postos_desconhecidos))) {
-      request <- paste0('http://api.funceme.br/rest/pluvio/posto?codigo=',id)
-      resp <- fromJSON(request)
-
-      if(resp$paginator$total!=0) {
-        postos_list[[id]]=bind_cols(select(resp$list,codigo,nome,altit,longit,latit,rua,cep),resp$list$municipio)
-      }
-    }
-
-
-  df_postos <- do.call(rbind, postos_list)
-  df_postos_with_location = df_postos %>%
-    filter(!is.na(latit) & !is.na(longit)) %>%
-    mutate(longit=sexagesimal2decimal(as.character(longit)),latit=sexagesimal2decimal(as.character(latit))) %>%
-    st_as_sf(coords=c('longit','latit'),crs=4326)
-  plot(df_postos_with_location)
-}
+# #' Request list of rainfall gauges from funceme API
+# #' @import jsonlite, lubridate, dplyr
+# #' @export
+# requestGauges <- function(returnN,requestDate) {
+#
+#     returnN <- 1000*Ndays
+#     response_list <- list()
+#     for(i in seq(0,Ndays-1)) {
+#       request <- paste0('http://api.funceme.br/rest/pluvio/pluviometria-funceme-normalizada?data.date=',
+#                         format(requestDate-i,tz="America/Fortaleza",format="%Y-%m-%d"),
+#                         '&limit=',
+#                         returnN)
+#       resp <- fromJSON(request)
+#       response_list[[i+1]] <- bind_cols(resp$list$data,select(resp$list,id,codigo,valor)) %>% mutate(date=ymd_hms(date))
+#     }
+#
+#     df <- do.call(rbind, response_list)
+#
+#     postos_list = list()
+#     postos = distinct(df,codigo)
+#
+#
+#
+#     for(id in seq(1,nrow(postos_desconhecidos))) {
+#       request <- paste0('http://api.funceme.br/rest/pluvio/posto?codigo=',id)
+#       resp <- fromJSON(request)
+#
+#       if(resp$paginator$total!=0) {
+#         postos_list[[id]]=bind_cols(select(resp$list,codigo,nome,altit,longit,latit,rua,cep),resp$list$municipio)
+#       }
+#     }
+#
+#
+#   df_postos <- do.call(rbind, postos_list)
+#   df_postos_with_location = df_postos %>%
+#     filter(!is.na(latit) & !is.na(longit)) %>%
+#     mutate(longit=sexagesimal2decimal(as.character(longit)),latit=sexagesimal2decimal(as.character(latit))) %>%
+#     st_as_sf(coords=c('longit','latit'),crs=4326)
+#   # plot(df_postos_with_location)
+# }
 
 #' Request measured volumes in strategic reservoirs from FUNCEME API. id, requestDate and returnN (number of points that should be returned)
 #' @import jsonlite

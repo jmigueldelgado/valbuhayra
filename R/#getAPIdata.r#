@@ -20,7 +20,8 @@ requestGauges <- function(returnN,requestDate) {
 
     df <- do.call(rbind, response_list)
 
-    distinct(df$codigo)     
+    postos <- df %>% group_by(codigo) %>% summarise(codigo=first(codigo))
+    
     
 }
 
