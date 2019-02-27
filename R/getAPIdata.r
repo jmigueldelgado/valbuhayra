@@ -24,6 +24,17 @@ sexagesimal2decimal <- function(string) {
 #' @export
 requestGauges <- function(requestDate,Ndays) {
 
+  library(lubridate)
+  library(dplyr)
+  library(valbuhayra)
+  library(sf)
+  library(jsonlite)
+
+
+
+
+  requestDate = today()
+  Ndays=2
   returnN <- 1000*Ndays
 
   response_list <- list()
@@ -62,6 +73,10 @@ requestGauges <- function(requestDate,Ndays) {
     mutate(longit=as.character(longit),latit=as.character(latit)) %>%
     mutate(longit = - sexagesimal2decimal(longit),latit= - sexagesimal2decimal(latit)) %>%
     st_as_sf(coords=c('longit','latit'),crs=4326)
+
+
+  df_postos_with_location$longit[2]
+
 
   load('./data/municipios.RData') # load municipios
   df_postos_without_location = df_postos %>%
