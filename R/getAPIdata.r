@@ -44,7 +44,7 @@ requestGauges <- function(requestDate,Ndays) {
   postos_unknown = anti_join(postos,p_gauges_saved,by="codigo")
 
   postos_list = list()
-  for(id in seq(1,nrow(postos_unknown))) {
+  for(id in postos_unknown$codigo) {
     request <- paste0('http://api.funceme.br/rest/pluvio/posto?codigo=',id)
     resp <- fromJSON(request)
 
