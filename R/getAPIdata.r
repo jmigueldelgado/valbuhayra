@@ -1,7 +1,7 @@
 #' Get decimal from base 60. Accepts string and returns decimal
 #' @export
 sexagesimal2decimal <- function(string) {
-  sapply(string, function(string) {
+  decimal=lapply(string, function(string) {
     if(nchar(string)>4) {
       degrees = substr(string,nchar(string)-5,nchar(string)-4) %>% as.numeric
       minutes = substr(string,nchar(string)-3,nchar(string)-2) %>% as.numeric
@@ -13,28 +13,18 @@ sexagesimal2decimal <- function(string) {
     }
     return(degrees+(minutes+seconds/60)/60)
   })
+  return(unlist(decimal))
 }
+
 
 #' Request list of rainfall gauges from funceme API
 #' @importFrom jsonlite fromJSON
 #' @importFrom lubridate ymd_hms
 #' @importFrom dplyr bind_cols bind_rows select mutate rename distinct arrange anti_join left_join filter
 #' @importFrom magrittr "%>%"
-#' @importFrom sf st_as_sf
+#' @importFrom sf st_as_sf st_geometry
 #' @export
 requestGauges <- function(requestDate,Ndays) {
-
-  library(lubridate)
-  library(dplyr)
-  library(valbuhayra)
-  library(sf)
-  library(jsonlite)
-
-
-
-
-  requestDate = today()
-  Ndays=2
   returnN <- 1000*Ndays
 
   response_list <- list()
@@ -44,12 +34,15 @@ requestGauges <- function(requestDate,Ndays) {
                       '&limit=',
                       returnN)
     resp <- fromJSON(request)
-    response_list[[i+1]] <- bind_cols(resp$list$data,select(resp$list,id,codigo,valor)) %>% mutate(date=ymd_hms(date))
+    if(!is.null(resp$list$data)) {
+      response_list[[i+1]] <- bind_cols(resp$list$data,select(resp$list,id,codigo,valor)) %>% mutate(date=ymd_hms(date))
+    }
   }
 
   df <- do.call(rbind, response_list)
 
   postos = distinct(df,codigo) %>% arrange(codigo)
+
 
   # load('./data/p_gauges_saved.RData')
   postos_unknown = anti_join(postos,p_gauges_saved,by="codigo")
@@ -67,29 +60,31 @@ requestGauges <- function(requestDate,Ndays) {
   df_postos <- do.call(rbind, postos_list) %>%
     mutate(codigo1=as.integer(codigo1))
 
-
   df_postos_with_location = df_postos %>%
     filter(!is.na(latit) & !is.na(longit)) %>%
+    filter(nchar(latit)>=3 & nchar(longit)>=3) %>%
     mutate(longit=as.character(longit),latit=as.character(latit)) %>%
     mutate(longit = - sexagesimal2decimal(longit),latit= - sexagesimal2decimal(latit)) %>%
     st_as_sf(coords=c('longit','latit'),crs=4326)
 
+  # load('./data/municipios.RData') # load municipios
 
-  df_postos_with_location$longit[2]
+  df_postos_without_location = anti_join(df_postos,select(df_postos_with_location,codigo)) %>%
+    inner_join(.,municipios %>%
+      mutate(codigo1=as.integer(as.character(CD_GEOCMU))) %>%
+      select(codigo1,geometry))
 
-
-  load('./data/municipios.RData') # load municipios
-  df_postos_without_location = df_postos %>%
-    filter(is.na(latit) | is.na(longit)) %>%
-    left_join(.,municipios %>% mutate(codigo1=as.integer(CD_GEOCMU)) %>% select(codigo1,geometry))
+  st_geometry(df_postos_without_location) <- "geometry"
 
   if(nrow(df_postos_without_location)>0) {
-    p_gauges_saved = bind_rows(select(df_postos_with_location,codigo,nome,altit,rua,cep,codigo1,nome1,geometry),select(df_postos_without_location,codigo,nome,altit,rua,cep,codigo1,nome1,geometry))
+    p_gauges_saved = rbind(
+      select(df_postos_with_location,codigo,nome,altit,rua,cep,codigo1,nome1,geometry),
+      select(df_postos_without_location,codigo,nome,altit,rua,cep,codigo1,nome1,geometry))
   } else {
     p_gauges_saved = df_postos_with_location
   }
+  # setwd('/home/delgado/proj/valbuhayra')
   # save(p_gauges_saved,file='data/p_gauges_saved.RData')
-
   return(p_gauges_saved)
 
 }
