@@ -2,10 +2,19 @@
 % Please edit documentation in R/getAPIdata.r
 \name{requestGauges}
 \alias{requestGauges}
-\title{Request list of rainfall gauges from funceme API}
+\title{Request list of rainfall gauges from funceme API in the last 3 days}
 \usage{
-requestGauges(requestDate, Ndays)
+requestGauges(requestDate)
+}
+\arguments{
+\item{requestDate}{of type `Date`}
+}
+\value{
+class `sf` with columns `codigo`, `nome`, `altit`, `rua`, `cep`, `codigo1`, `nome1` and `geometry`
 }
 \description{
-Request list of rainfall gauges from funceme API
+Request list of rainfall gauges from funceme API in the last 3 days
+}
+\author{
+JM Delgado, \email{martinsd@uni-potsdam.de}
 }

@@ -17,14 +17,23 @@ sexagesimal2decimal <- function(string) {
 }
 
 
-#' Request list of rainfall gauges from funceme API
+#' Request list of rainfall gauges from funceme API in the last 3 days
+#'
+#' @param requestDate of type `Date`
+#'
 #' @importFrom jsonlite fromJSON
-#' @importFrom lubridate ymd_hms
+#' @importFrom lubridate ymd_hms today
 #' @importFrom dplyr bind_cols bind_rows select mutate rename distinct arrange anti_join left_join filter
 #' @importFrom magrittr "%>%"
 #' @importFrom sf st_as_sf st_geometry
+#'
+#' @return class `sf` with columns `codigo`, `nome`, `altit`, `rua`, `cep`, `codigo1`, `nome1` and `geometry`
+#'
+#' @author JM Delgado, \email{martinsd@uni-potsdam.de}
+#'
 #' @export
-requestGauges <- function(requestDate,Ndays) {
+requestGauges <- function(requestDate) {
+  Ndays=3
   returnN <- 1000*Ndays
 
   response_list <- list()
@@ -87,6 +96,49 @@ requestGauges <- function(requestDate,Ndays) {
   # save(p_gauges_saved,file='data/p_gauges_saved.RData')
   return(p_gauges_saved)
 
+}
+
+#' Request rainfall measurements from FUNCEME API.
+#'
+#' @param codigo is the id of the station, use data(p_gauges_saved) to obtain a list of available stations with metadata.
+#' @param requestDate a data of class `Date`
+#' @param returnN (number of points that should be returned)
+#'
+#' @importFrom lubridate ymd_hms today
+#'
+#' @return `data.frame` with columns `datetime`, `value` and `codigo`
+#'
+#' @author JM Delgado, \email{martinsd@uni-potsdam.de}
+#' @export
+requestPrecip <- function(codigo,requestDate,returnN) {
+  if(missing(requestDate)) {
+    requestDate=today()
+  }
+  if(missing(returnN)) {
+    returnN=5
+  }
+  if(missing(codigo)) {
+    codigo=231
+  }
+
+
+  response_list <- list()
+  request <- paste0('http://api.funceme.br/rest/pluvio/pluviometria-funceme-normalizada?data.date=',
+                    format(requestDate,tz="America/Fortaleza",format="%Y-%m-%d"),
+                    '&codigo=',
+                    codigo,
+                    '&limit=',
+                    returnN)
+  resp <- fromJSON(request)
+  if(resp$paginator$total>0){
+    resp$list %>%
+      select(codigo,valor) %>%
+      bind_cols(resp$list$data %>% select(date)) %>%
+      rename(value=valor,datetime=date) %>%
+      return
+    } else {
+      return(data.frame(codigo=integer(),value=numeric(),datetime=as.POSIXct(character())))
+    }
 }
 
 #' Request measured volumes in strategic reservoirs from FUNCEME API. id, requestDate and returnN (number of points that should be returned)
