@@ -61,3 +61,22 @@
 #' data(reservoirs)
 #' \donttest{plot(reservoirs["capacity"])}
 "reservoirs"
+
+#' List of precipitation gauges monitored by FUNCEME
+#'
+#' The data was obtained from the \href{http://api.funceme.br/help}{FUNCEME API} and the gauges are being updated everytime a new gauge is installed and goes online.
+#'
+#' @docType data
+#'
+#' @usage data(p_gauges_saved)
+#'
+#' @format An object of class \code{"sf"}.
+#'
+#' @keywords datasets
+#'
+#' @source \href{http://api.funceme.br/help}{FUNCEME API}
+#'
+#' @examples
+#' data(p_gauges_saved)
+#' \donttest{plot(p_gauges_saved["codigo1"])}
+"p_gauges_saved"
