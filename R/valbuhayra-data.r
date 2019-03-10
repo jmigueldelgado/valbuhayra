@@ -80,3 +80,16 @@
 #' data(p_gauges_saved)
 #' \donttest{plot(p_gauges_saved["codigo1"])}
 "p_gauges_saved"
+
+
+#' Hydrographic regions of Ceara
+#'
+#' @docType data
+#'
+#' @usage data(hydro_regions)
+#'
+#' @format An object of class \code{"sf"}.
+#'
+#' @keywords datasets
+#'
+"hydro_regions"
