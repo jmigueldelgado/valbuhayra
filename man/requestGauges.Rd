@@ -4,7 +4,7 @@
 \alias{requestGauges}
 \title{Request list of rainfall gauges from funceme API}
 \usage{
-requestGauges(requestDate, Ndays)
+requestGauges(requestDate = today(), Ndays = 2)
 }
 \description{
 Request list of rainfall gauges from funceme API

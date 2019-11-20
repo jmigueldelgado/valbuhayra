@@ -1,0 +1,30 @@
+---
+title: "Inspect FUNCEME data"
+author: "JM Delgado"
+date: "`r Sys.Date()`"
+output: rmarkdown::github_document
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Load reservoirs and plot
+
+```{r, results=asis}
+library(valbuhayra)
+plot(reservoirs)
+```
+
+## Check if currently available
+
+```{r, results=asis}
+requestVolumes(id=174,requestDate=today(),returnN=10)
+```

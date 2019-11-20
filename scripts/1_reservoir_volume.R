@@ -2,8 +2,6 @@
 # Reservoirs NEB - PostgreSQL database ####
 ##########################################+
 
-setwd("C:/Users/dobkowitz/DownloadReservoirData")
-
 library(RPostgreSQL)
 library(geojsonR)
 library(sf)

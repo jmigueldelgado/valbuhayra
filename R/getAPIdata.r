@@ -19,22 +19,10 @@ sexagesimal2decimal <- function(string) {
 #' @importFrom jsonlite fromJSON
 #' @importFrom lubridate ymd_hms
 #' @importFrom dplyr bind_cols bind_rows select mutate rename distinct arrange anti_join left_join filter
-#' @importFrom magrittr "%>%"
+#' @importFrom dplyr "%>%"
 #' @importFrom sf st_as_sf
 #' @export
-requestGauges <- function(requestDate,Ndays) {
-
-  library(lubridate)
-  library(dplyr)
-  library(valbuhayra)
-  library(sf)
-  library(jsonlite)
-
-
-
-
-  requestDate = today()
-  Ndays=2
+requestGauges <- function(requestDate=today(),Ndays=2) {
   returnN <- 1000*Ndays
 
   response_list <- list()
@@ -44,7 +32,10 @@ requestGauges <- function(requestDate,Ndays) {
                       '&limit=',
                       returnN)
     resp <- fromJSON(request)
-    response_list[[i+1]] <- bind_cols(resp$list$data,select(resp$list,id,codigo,valor)) %>% mutate(date=ymd_hms(date))
+    if(nrow(resp$list)<1)
+    {
+      next
+    } else response_list[[i+1]] <- bind_cols(resp$list$data,select(resp$list,id,codigo,valor)) %>% mutate(date=ymd_hms(date))
   }
 
   df <- do.call(rbind, response_list)
@@ -77,8 +68,6 @@ requestGauges <- function(requestDate,Ndays) {
 
   df_postos_with_location$longit[2]
 
-
-  load('./data/municipios.RData') # load municipios
   df_postos_without_location = df_postos %>%
     filter(is.na(latit) | is.na(longit)) %>%
     left_join(.,municipios %>% mutate(codigo1=as.integer(CD_GEOCMU)) %>% select(codigo1,geometry))
@@ -88,16 +77,21 @@ requestGauges <- function(requestDate,Ndays) {
   } else {
     p_gauges_saved = df_postos_with_location
   }
-  # save(p_gauges_saved,file='data/p_gauges_saved.RData')
+  save(p_gauges_saved,file='data/p_gauges_saved.RData')
 
-  return(p_gauges_saved)
+
+  return(df_postos_with_location)
 
 }
 
 #' Request measured volumes in strategic reservoirs from FUNCEME API. id, requestDate and returnN (number of points that should be returned)
-#' @import jsonlite
+#' @importFrom jsonlite fromJSON
+#' @importFrom lubridate today force_tz
 #' @export
 requestVolumes <- function(id,requestDate,returnN) {
+  # id=174
+  # requestDate=today(tzone="America/Fortaleza")-3
+  # returnN=10
   if(missing(requestDate)) {
     requestDate=strftime(Sys.time()-3*60*60*24,format="%Y-%m-%d")
   }
@@ -107,11 +101,10 @@ requestVolumes <- function(id,requestDate,returnN) {
   if(missing(id)) {
     id=9
   }
-
   if(grepl('POSIX',class(requestDate)[1])) {
     requestDateAPI = format(requestDate,tz="America/Fortaleza",format="%Y-%m-%d")
   } else {
-    requestDateAPI = requestDate
+    requestDateAPI = force_tz(requestDate,tz="America/Fortaleza",roll=TRUE)
   }
 
   request=paste0('http://api.funceme.br/rest/acude/volume?reservatorio.cod=',
@@ -136,13 +129,31 @@ requestVolumes <- function(id,requestDate,returnN) {
   }
   volOut=data.frame(returnedDate=dt,requestDate=requestDate,value=value,cod=id)
 
-  # if observation date is more than two weeks apart from our requested date, only NA is returned
-  largediff=as.numeric(difftime(volOut$returnedDate,volOut$requestDate,units='days'))>14
-  volOut$value[largediff]=NA
-  volOut$returnedDate[largediff]=NA
+  # # if observation date is more than two weeks apart from our requested date, only NA is returned
+  # largediff=as.numeric(difftime(volOut$returnedDate,volOut$requestDate,units='days'))>14
+  # volOut$value[largediff]=NA
+  # volOut$returnedDate[largediff]=NA
   return(volOut)
 }
 
+# molle <- function(poly_max)
+#
+# pereira1c <- function(poly_max)
+#
+# pol2vol(poly,poly_max)
+#   hu1$lambda <- hu1$area_max/hu1$peri_max
+#   hu1$D <- hu1$peri_max/pi
+#   hu1$alpha <- 2.08 + (1.46 * 10)*(hu1$lambda/hu1$peri_max)- (7.41 * 10^-2)*(hu1$lambda^2 / hu1$peri_max) - (1.36 * 10^-8)*(hu1$area_max * hu1$D/hu1$lambda) + (4.07 * 10^-4)*hu1$D
+#
+#   hu1$K <- 2.55 * 10^3 + (6.45 * 10)* hu1$lambda - (5.38 * 10)*(hu1$D / hu1$lambda)
+#
+#   V_0 <- 2096
+#   A_0 <- 5000
+#   hu1$volume <- V_0 + A_0 * (((hu1$area_act - A_0)/(hu1$alpha * hu1$K)))^(1/(hu1$alpha-1)) +
+#     hu1$K * (((hu1$area_act - A_0)/(hu1$alpha * hu1$K)))^(hu1$alpha/(hu1$alpha-1))
+#
+#   # If area_act < 5000 m^2 use old approach (Molle 1994)
+#   hu1$volume[hu1$area_act<5000] <- 1500*(hu1$area_act[hu1$area_act<5000]/(2.7*1500))^(2.7/(2.7-1))
 
 
 # #' convert volumes from API into areas based on CAV obtained on the API and stored in this package
