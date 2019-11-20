@@ -21,6 +21,8 @@ knitr::opts_chunk$set(
 ```{r, results=asis}
 library(valbuhayra)
 plot(reservoirs)
+
+
 ```
 
 ## Check if currently available
