@@ -2,5 +2,5 @@
 *.Rhistory
 *.geojson
 *.gpkg
-pw.r
+pw.R
 data-raw

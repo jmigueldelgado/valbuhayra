@@ -16,17 +16,28 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Load reservoirs and plot
-
-```{r, results=asis}
-library(valbuhayra)
-plot(reservoirs)
-
-
-```
 
 ## Check if currently available
 
 ```{r, results=asis}
-requestVolumes(id=174,requestDate=today(),returnN=10)
+library(RPostgreSQL)
+source("./pw.R")
+drv <- dbDriver("PostgreSQL")
+con <- dbConnect(drv, dbname='watermasks', host = hostname, port = 5432, user = "sar2water", password = pw)
+rm(pw)
+
+# click = list()
+# click$lat=-5.3317
+# click$lng=-40.3075
+my_long=-40.1230031725
+my_lat=-5.98302184084
+
+id <- dbGetQuery(con, paste0("SELECT id_jrc FROM jrc_neb WHERE ST_Distance_Sphere(geom, ST_MakePoint(",my_long,",",my_lat,")) <= 500"))
+dbDisconnect(conn = con)
+
+id
+
+out=requestVolumes(id=174,requestDate=lubridate::today()-5,returnN=10)
+
+out
 ```

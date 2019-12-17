@@ -2,21 +2,21 @@ library(valbuhayra)
 library(sf)
 library(dplyr)
 library(magrittr)
-wm_fun = st_read('/home/delgado/proj/buhayra/buhayra/auxdata/funceme.geojson')
+wm_fun = st_read('/home/delgado/proj/buhayra/buhayra/auxdata/wm_utm_neb.gpkg')
 wm_fun = st_set_crs(wm_fun,32724)
 
+head(wm_fun)
 head(reservoirs)
 
 id_funceme=array()
 
 for(i in seq(1,nrow(reservoirs))) {
   dsts=st_distance(x=reservoirs[i,],y=wm_fun) %>% as.numeric
-  if(min(dsts)<1000) {
+  if(min(dsts)<100) {
     id_funceme[i]= dsts %>% which.min %>% wm_fun$id[.]
   } else {
     id_funceme[i]=NA
   }
-
 }
 length(id_funceme)
 nrow(reservoirs)

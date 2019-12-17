@@ -14,7 +14,7 @@ id_jrc_funceme <- list()
 for(h in 1:12){
 hu1 <- hu_tables[[h]]
 
-res_jrc <- st_as_sf(hu1, wkt = c("geom_max"),crs=4326) 
+res_jrc <- st_as_sf(hu1, wkt = c("geom_max"),crs=4326)
 res_jrc <- st_transform(res_jrc, 32724)
 
 id_jrc=array()
