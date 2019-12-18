@@ -84,6 +84,27 @@ requestGauges <- function(requestDate=today(),Ndays=2) {
 
 }
 
+#' request reservoir from api by querying
+bbox2api
+
+
+
+#' Request reservoir id based on jrc_neb table. only works on uni VPN and with password.
+#' @importFrom RPostgreSQL dbDriver dbConnect dbGetQuery dbDisconnect
+#' @export
+latlong2id = function(lon,lat,pw,hostname)
+{
+  # source("./pw.R")
+  drv <- dbDriver("PostgreSQL")
+  con <- dbConnect(drv, dbname='watermasks', host = hostname, port = 5432, user = "sar2water", password = pw)
+  # rm(pw)
+
+  id <- dbGetQuery(con, paste0("SELECT id_jrc FROM jrc_neb WHERE ST_Distance_Sphere(geom, ST_MakePoint(",my_long,",",my_lat,")) <= 500"))
+  dbDisconnect(conn = con)
+  return(id)
+}
+
+
 #' Request measured volumes in strategic reservoirs from FUNCEME API. id, requestDate and returnN (number of points that should be returned)
 #' @importFrom jsonlite fromJSON
 #' @importFrom lubridate today force_tz
