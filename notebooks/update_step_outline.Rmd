@@ -27,22 +27,47 @@ knitr::opts_chunk$set(
 2. loop on all reservoirs selected to check for monitoring updates
 3. publish alongside buhayra
 
-### Reservoir metadata
-```{r include=FALSE}
-library(magrittr)
-```
+### 1. Reservoir metadata
+
 Trying to implement the following request `http://api.funceme.br/rest/acude/reservatorio?limit=10&page=3`
+
+Obtain total number of pages:
 ```{r results='asis'}
+library(dplyr)
+library(sf)
 
 url='http://api.funceme.br'
 path='rest/acude/reservatorio'
-raw = httr::GET(url = url, path = path, query=list(limit='5',page='2'))
+raw = httr::GET(url = url, path = path,
+  query=list(uf='23'))
 
 json_content=rawToChar(raw$content) %>%
   jsonlite::fromJSON()
 
+total_pages=json_content$paginator$page$total
+```
+Loop over total number of pages and save relevant reservoir metadata.
+```{r results='asis'}
+reservoirs=list()
+for(page_i in seq(1,total_pages))
+  {
+    raw = httr::GET(url = url, path = path,
+      query=list(uf='23',page=paste0(page_i)))
+    json_content=rawToChar(raw$content) %>%
+      jsonlite::fromJSON()
+    reservoirs[[page_i]]=json_content$list %>%
+      select(cod,nome,municipio,longitude,latitude)
+  }
+reservoirs=do.call('rbind',reservoirs)
+reservoirs_meta = reservoirs %>%
+  filter(!is.na(longitude) & !is.na(latitude)) %>%
+  st_as_sf(coords=c('longitude','latitude'))
 ```
 
+### 2. Loop and check for updates
+
+```{r results='asis'}
+```
 
 ## Precipitation
 
