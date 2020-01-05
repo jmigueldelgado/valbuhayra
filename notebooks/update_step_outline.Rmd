@@ -38,8 +38,7 @@ library(sf)
 
 url='http://api.funceme.br'
 path='rest/acude/reservatorio'
-raw = httr::GET(url = url, path = path,
-  query=list(uf='23'))
+raw = httr::GET(url = url, path = path)
 
 json_content=rawToChar(raw$content) %>%
   jsonlite::fromJSON()
@@ -48,25 +47,65 @@ total_pages=json_content$paginator$page$total
 ```
 Loop over total number of pages and save relevant reservoir metadata.
 ```{r results='asis'}
-reservoirs=list()
+reservoirs_list=list()
 for(page_i in seq(1,total_pages))
   {
     raw = httr::GET(url = url, path = path,
-      query=list(uf='23',page=paste0(page_i)))
+      query=list(page=paste0(page_i)))
     json_content=rawToChar(raw$content) %>%
       jsonlite::fromJSON()
-    reservoirs[[page_i]]=json_content$list %>%
-      select(cod,nome,municipio,longitude,latitude)
+    reservoirs_list[[page_i]]=json_content$list %>%
+      select(cod,nome,municipio,longitude,latitude,capacidade,altura_maxima)
   }
-reservoirs=do.call('rbind',reservoirs)
-reservoirs_meta = reservoirs %>%
+reservoirs=do.call('rbind',reservoirs_list)
+reservoirs = reservoirs %>%
   filter(!is.na(longitude) & !is.na(latitude)) %>%
   st_as_sf(coords=c('longitude','latitude'))
+save(reservoirs,file='data/reservoirs.RData')
 ```
 
 ### 2. Loop and check for updates
+Querying reservoir level looks like:
 
 ```{r results='asis'}
+library(lubridate)
+cod_i=1119
+
+url='http://api.funceme.br'
+path='rest/acude/volume'
+cutoff_date=today()-7
+raw = httr::GET(url = url, path = path,
+  query=list(reservatorio.cod=paste0(cod_i),
+  dataColeta.GTE=paste0(with_tz(cutoff_date,tz="America/Sao_Paulo")),
+  orderBy='dataColeta,cres'))
+  json_content=rawToChar(raw$content) %>%
+    jsonlite::fromJSON()
+
+volumes=json_content$list %>%
+  select(dataColeta,valor,percentual) %>%
+  mutate(cod=cod_i)
+```
+
+So an equivalent function should look like:
+
+```{r results='asis'}
+currentVolume <- function(cod_i) {
+  url='http://api.funceme.br'
+  path='rest/acude/volume'
+  cutoff_date=today()-7
+  raw = httr::GET(url = url, path = path,
+    query=list(reservatorio.cod=paste0(cod_i),
+    dataColeta.GTE=paste0(with_tz(cutoff_date,tz="America/Sao_Paulo")),
+    orderBy='dataColeta,cres'))
+    json_content=rawToChar(raw$content) %>%
+      jsonlite::fromJSON()
+
+    volumes=json_content$list %>%
+      select(dataColeta,valor,percentual) %>%
+      mutate(cod=cod_i)
+
+    return(volumes)
+}
 ```
 
 ## Precipitation

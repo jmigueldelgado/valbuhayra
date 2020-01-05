@@ -84,11 +84,6 @@ requestGauges <- function(requestDate=today(),Ndays=2) {
 
 }
 
-#' request reservoir from api by querying
-bbox2api
-
-
-
 #' Request reservoir id based on jrc_neb table. only works on uni VPN and with password.
 #' @importFrom RPostgreSQL dbDriver dbConnect dbGetQuery dbDisconnect
 #' @export
@@ -102,6 +97,28 @@ latlong2id = function(lon,lat,pw,hostname)
   id <- dbGetQuery(con, paste0("SELECT id_jrc FROM jrc_neb WHERE ST_Distance_Sphere(geom, ST_MakePoint(",my_long,",",my_lat,")) <= 500"))
   dbDisconnect(conn = con)
   return(id)
+}
+
+#' Request current volume in strategic reservoirs.
+#' @importFrom jsonlite fromJSON
+#' @importFrom lubridate today with_tz
+#' @export
+currentVolume <- function(cod_i) {
+  url='http://api.funceme.br'
+  path='rest/acude/volume'
+  cutoff_date=today()-7
+  raw = httr::GET(url = url, path = path,
+    query=list(reservatorio.cod=paste0(cod_i),
+    dataColeta.GTE=paste0(with_tz(cutoff_date,"America/Sao_Paulo")),
+    orderBy='dataColeta,cres'))
+    json_content=rawToChar(raw$content) %>%
+      jsonlite::fromJSON()
+
+    volumes=json_content$list %>%
+      select(dataColeta,valor,percentual) %>%
+      mutate(cod=cod_i)
+
+    return(volumes)
 }
 
 

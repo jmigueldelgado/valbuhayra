@@ -44,7 +44,7 @@
 
 #' Monitored reservoirs in Ceará
 #'
-#' The data was obtained from the \href{http://api.funceme.br/help}{FUNCEME API} and the IDs were matched with \code{wm}. Column \code{cod} is the ID in the API and column \code{id} is the ID given in the watermask \code{wm}.
+#' The data was obtained from the \href{http://api.funceme.br/help}{FUNCEME API}.
 #'
 #' @docType data
 #'
@@ -59,7 +59,7 @@
 #'
 #' @examples
 #' data(reservoirs)
-#' \donttest{plot(reservoirs["capacity"])}
+#' \donttest{plot(reservoirs["capacidade"])}
 "reservoirs"
 
 #' List of precipitation gauges monitored by FUNCEME
